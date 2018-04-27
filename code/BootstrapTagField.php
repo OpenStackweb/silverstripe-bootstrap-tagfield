@@ -1,5 +1,19 @@
 <?php
 
+use SilverStripe\Core\Convert;
+use SilverStripe\Forms\CheckboxSetField;
+use SilverStripe\Forms\Form;
+use SilverStripe\ORM\ArrayList;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\DataObjectInterface;
+use SilverStripe\ORM\FieldType\DBHTMLText;
+use SilverStripe\ORM\RelationList;
+use SilverStripe\ORM\SS_List;
+use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Control\HTTPResponse;
+use SilverStripe\ORM\UnsavedRelationList;
+use SilverStripe\View\Requirements;
+
 /**
  * Creates a field that allows multiple selection, like a CheckboxSetField
  * to store in a many_many, has_many, or native field (comma separated values)
@@ -9,6 +23,8 @@
  * @author  Uncle Cheese <unclecheese@leftandmain.com>
  * @package  silverstripe-bootstrap-tagfield
  */
+
+
 class BootstrapTagField extends CheckboxSetField {
 
 	/**
@@ -46,17 +62,17 @@ class BootstrapTagField extends CheckboxSetField {
 	 */
 	protected $freeInput = false;
 
-	/**
-	 * Constructor
-	 * 	
-	 * @param string $name
-	 * @param string $title
-	 * @param SS_List $source
-	 * @param string $labelField
-	 * @param string $idField
-	 * @param string $value
-	 * @param Form $form
-	 */
+    /**
+     * BootstrapTagField constructor.
+     * @param string $name
+     * @param null $title
+     * @param null $source
+     * @param string $labelField
+     * @param string $idField
+     * @param string $value
+     * @param null $form
+     * @throws Exception
+     */
 	public function __construct($name, $title=null, $source = null, $labelField = 'Title', $idField = 'ID', $value='', $form=null) {
 		if($source && !$source instanceof SS_List) {
 			throw new Exception("BootstrapTagField::__construct() -- \$source must be an SS_List");
@@ -68,7 +84,7 @@ class BootstrapTagField extends CheckboxSetField {
 		$this->labelField = $labelField;
 		$this->idField = $idField;
 
-		parent::__construct($name, $title, $source, $value, $form);
+		parent::__construct($name, $title, $source, $value);
 	}
 
 	/**
@@ -92,10 +108,10 @@ class BootstrapTagField extends CheckboxSetField {
 	/**
 	 * An AJAX endpoint for querying the typeahead
 	 * 
-	 * @param  SS_HTTPRequest $r The request
+	 * @param  HTTPRequest $r The request
 	 * @return string            JSON
 	 */
-	public function query(SS_HTTPRequest $r) {
+	public function query(HTTPRequest $r) {
 		return $this->formatJSON($this->source->filter(array(
 			$this->labelField.':PartialMatch' => $r->getVar('q')
 		))
@@ -105,10 +121,10 @@ class BootstrapTagField extends CheckboxSetField {
 	/**
 	 * An AJAX endpoint for getting the prefetch JSON
 	 * 	
-	 * @param  SS_HTTPRequest $r The request
+	 * @param  HTTPRequest $r The request
 	 * @return string 			JSON
 	 */
-	public function prefetch(SS_HTTPRequest $r) {
+	public function prefetch(HTTPRequest $r) {
 		if($this->prefetch) {
 			return $this->formatJSON($this->prefetch);
 		}
@@ -247,7 +263,7 @@ class BootstrapTagField extends CheckboxSetField {
 	 * Renders the field
 	 *
 	 * @param  array $properties
-	 * @return  SSViewer
+	 * @return DBHTMLText
 	 */
 	public function Field($properties = array()) {
 		Requirements::javascript(BOOTSTRAP_TAGFIELD_DIR.'/javascript/typeahead.js');
